@@ -1,0 +1,78 @@
+<html>
+<body>
+
+<style type="text/css">
+
+    body{
+        background-image: url("http://gleegosoftware.com/wp-content/uploads/2013/11/Pittsburgh-skyline-panorama.jpg");
+        background-size: cover;
+    }
+
+    div {
+    width: 200px;
+    height: 200px;
+
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+}
+
+    input, textarea {
+    padding: 9px;
+    border: solid 1px #E5E5E5;
+    outline: 0;
+    font: normal 13px/100% Verdana, Tahoma, sans-serif;
+    width: 200px;
+    background: #FFFFFF;
+    }
+
+    textarea {
+    width: 400px;
+    max-width: 400px;
+    height: 150px;
+    line-height: 150%;
+    }
+
+    input:hover, textarea:hover,
+    input:focus, textarea:focus {
+    border-color: #C9C9C9;
+    }
+
+    .questioninput label {
+    margin-left: 37px;
+    color: #98ff02;
+    }
+
+    .submitbutton input {
+    width: auto;
+    padding: 15px 15px;
+    background: #617798;
+    border: 0;
+    font-size: 14px;
+    color: #FFFFFF;
+        margin-left: 58px;
+    }
+</style>
+
+<div>
+    <form class="enterquestions" method="post" action="/savePost">
+
+        <p class="questioninput">
+            <label for="questionbox">Enter Question Here</label>
+            <br><br>
+            <input type="text" name="questionbox" id="questionbox"/>
+        </p>
+
+        <p class="submitbutton">
+            <input type="submit" value="submit" />
+        </p>
+
+    </form>
+</div>
+
+</body>
+</html>
