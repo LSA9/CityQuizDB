@@ -20,6 +20,10 @@ class savePost(webapp2.RequestHandler):
         question = Question()
         question.questionText = self.request.get('questionbox')
         question.timeSubmitted = datetime.datetime.now()
+        question.answer1 = self.request.get('answer1')
+        question.answer2 = self.request.get('answer2')
+        question.answer3 = self.request.get('answer3')
+        question.answer4 = self.request.get('answer4')
         question.put()
         render_template(self, 'index.html', {})
 
@@ -27,6 +31,10 @@ class savePost(webapp2.RequestHandler):
 
 class Question(db.Model):
     questionText = db.StringProperty(multiline = True)
+    answer1 = db.StringProperty(multiline=True)
+    answer2 = db.StringProperty(multiline=True)
+    answer3 = db.StringProperty(multiline=True)
+    answer4 = db.StringProperty(multiline=True)
     timeSubmitted = db.DateTimeProperty()
 
 app = webapp2.WSGIApplication([
