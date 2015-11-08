@@ -3,8 +3,11 @@ __author__ = 'Aronson1'
 import os
 import datetime
 import webapp2
+import string
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
+from google.appengine.api import users
+import logging
 
 def render_template(handler, templatename, templatevalues):
     path = os.path.join(os.path.dirname(__file__),'templates/'+templatename)
@@ -13,7 +16,20 @@ def render_template(handler, templatename, templatevalues):
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        render_template(self, 'index.html', {})
+        user = users.get_current_user()
+        if user:
+            userList = Use.all()
+            userInQuestion = userList.filter("email =", user.email())
+            result = userList.get()
+            if result:
+                render_template(self,'index.html',{})
+            else:
+                render_template(self,'login.html',{})
+        else:
+            url = users.create_login_url()
+            render_template(self, 'getGmailLogin.html',{
+                'url': url
+            })
 
 class savePost(webapp2.RequestHandler):
     def post(self):
@@ -27,6 +43,24 @@ class savePost(webapp2.RequestHandler):
         question.put()
         render_template(self, 'index.html', {})
 
+class saveLogin(webapp2.RequestHandler):
+    def post(self):
+        mail = users.get_current_user().email()
+        name = self.request.get('username')
+        passw = self.request.get('password')
+        if (mail == '' or name == '' or passw == ''):
+            errorString = 'Please use a valid username and password!'
+            render_template(self,'login.html',{
+                'error' : errorString
+            })
+        else:
+            use = Use()
+            logging.debug(users.get_current_user().email())
+            use.email = mail
+            use.username = name
+            use.password = passw
+            use.put()
+            render_template(self,'index.html',{})
 
 
 class Question(db.Model):
@@ -37,7 +71,13 @@ class Question(db.Model):
     answer4 = db.StringProperty(multiline=True)
     timeSubmitted = db.DateTimeProperty()
 
+class Use(db.Model):
+    email = db.StringProperty(required=True)
+    username = db.StringProperty(required=True)
+    password = db.StringProperty(required=True)
+
 app = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/savePost', savePost)
+    ('/savePost', savePost),
+    ('/saveLogin', saveLogin)
 ], debug=True)
