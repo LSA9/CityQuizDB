@@ -1,4 +1,8 @@
+import endpoints
+
 __author__ = 'Aronson1'
+
+package='TriviaGame'
 
 import os
 import datetime
@@ -8,6 +12,8 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from google.appengine.api import users
 import logging
+import json
+
 
 def render_template(handler, templatename, templatevalues):
     path = os.path.join(os.path.dirname(__file__),'templates/'+templatename)
@@ -48,7 +54,7 @@ class saveLogin(webapp2.RequestHandler):
         mail = users.get_current_user().email()
         name = self.request.get('username')
         passw = self.request.get('password')
-        if (mail == '' or name == '' or passw == ''):
+        if (mail == ''):
             errorString = 'Please use a valid username and password!'
             render_template(self,'login.html',{
                 'error' : errorString
@@ -63,6 +69,8 @@ class saveLogin(webapp2.RequestHandler):
             render_template(self,'index.html',{})
 
 
+
+
 class Question(db.Model):
     questionText = db.StringProperty(multiline = True)
     answer1 = db.StringProperty(multiline=True)
@@ -72,9 +80,9 @@ class Question(db.Model):
     timeSubmitted = db.DateTimeProperty()
 
 class Use(db.Model):
-    email = db.StringProperty(required=True)
-    username = db.StringProperty(required=True)
-    password = db.StringProperty(required=True)
+    email = db.StringProperty()
+    username = db.StringProperty()
+    password = db.StringProperty()
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
