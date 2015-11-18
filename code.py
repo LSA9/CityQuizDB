@@ -142,10 +142,29 @@ class ping(webapp2.RequestHandler):
         }
         self.response.out.write(json.dumps(obj))
 
+####################################################################################
+# Gets the users with the top 5 high scores for the leaderboard
+####################################################################################
+class receiveLeaderBoard(webapp2.RequestHandler):
+    def get(self):
+        userList = Use.all()
+        userList.order("-highScore")
+        userList.fetch(5)
+        obj = {
+            'Users': [
+                {"Username":userList[0].username, "highScore":userList[0].highScore},
+                {"Username":userList[1].username, "highScore":userList[1].highScore},
+                {"Username":userList[2].username, "highScore":userList[2].highScore},
+                {"Username":userList[2].username, "highScore":userList[2].highScore},
+                {"Username":userList[2].username, "highScore":userList[2].highScore},
+            ]
+        }
+        self.response.out.write(json.dumps(obj, sort_keys=True))
+
 
 
 ####################################################################################
-# Start of database objects
+# Database objects
 ####################################################################################
 class Question(db.Model):
     questionText = db.StringProperty(multiline = True)
@@ -170,7 +189,8 @@ app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/savePost', savePost),
     ('/saveLogin', saveLogin),
-    ('/getQuestions', sendJsonQuestions),
+    ('/receiveDailyQuestions', sendJsonQuestions),
     ('/receiveUsernameValid', receiveUsernameValid),
+    ('/receiveLeaderBoard', receiveLeaderBoard),
     ('/ping', ping)
 ], debug=True)
