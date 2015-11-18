@@ -70,20 +70,29 @@ class saveLogin(webapp2.RequestHandler):
     def post(self):
         mail = users.get_current_user().email()
         name = self.request.get('username')
+        userList = Use.all()
+        userList.filter("username =", name)
         passw = self.request.get('password')
-        if (mail == ''):
-            errorString = 'Please use a valid username and password!'
+        if userList.count()==1:
+            invalidUsername = "Username already in use!"
             render_template(self,'login.html',{
-                'error' : errorString
+                'error' : invalidUsername
             })
         else:
-            use = Use()
-            logging.debug(users.get_current_user().email())
-            use.email = mail
-            use.username = name
-            use.password = passw
-            use.put()
-            render_template(self,'index.html',{})
+            if (mail == ''):
+                errorString = 'Please use a valid username and password!'
+                render_template(self,'login.html',{
+                    'error' : errorString
+                })
+            else:
+                use = Use()
+                logging.debug(users.get_current_user().email())
+                use.email = mail
+                use.username = name
+                use.password = passw
+                use.highScore = 0
+                use.put()
+                render_template(self,'index.html',{})
 
 ####################################################################################
 # Creates a json string of 5 random questions of the day
@@ -115,11 +124,9 @@ class receiveUsernameValid (webapp2.RequestHandler):
         userList = Use.all()
         userList.filter('username =', parsedUrl[1])
         userList.filter('password =', parsedUrl[2])
-        currentUser = userList.run()
-        if currentUser.count()<1:
+        userList.fetch(1)
+        if userList.count()==1:
             self.response.out.write(True)
-            self.response.out.write(parsedUrl[1])
-            self.response.out.write(parsedUrl[2])
         else:
             self.response.out.write(False)
 
@@ -153,6 +160,7 @@ class Use(db.Model):
     email = db.StringProperty()
     username = db.StringProperty()
     password = db.StringProperty()
+    highScore = db.IntegerProperty()
 
 
 ####################################################################################
