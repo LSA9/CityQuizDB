@@ -1,5 +1,7 @@
 __author__ = 'Aronson1'
 
+package='TriviaGame'
+
 import os
 import datetime
 import webapp2
@@ -8,12 +10,18 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from google.appengine.api import users
 import logging
+import json
+import random
+
 
 def render_template(handler, templatename, templatevalues):
     path = os.path.join(os.path.dirname(__file__),'templates/'+templatename)
     html = template.render(path, templatevalues)
     handler.response.out.write(html)
 
+####################################################################################
+# Creates the main page and checks for user authentication
+####################################################################################
 class MainPage(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
@@ -31,24 +39,39 @@ class MainPage(webapp2.RequestHandler):
                 'url': url
             })
 
+####################################################################################
+# Takes a submitted question from the website and stores it in the database
+####################################################################################
 class savePost(webapp2.RequestHandler):
     def post(self):
-        question = Question()
-        question.questionText = self.request.get('questionbox')
-        question.timeSubmitted = datetime.datetime.now()
-        question.answer1 = self.request.get('answer1')
-        question.answer2 = self.request.get('answer2')
-        question.answer3 = self.request.get('answer3')
-        question.answer4 = self.request.get('answer4')
-        question.put()
-        render_template(self, 'index.html', {})
+        QT = self.request.get('questionbox')
+        A1 = self.request.get('answer1')
+        A2 = self.request.get('answer2')
+        A3 = self.request.get('answer3')
+        A4 = self.request.get('answer4')
+        if (QT=='' or A1==''  or A2=='' or A3=='' or A4==''):
+            render_template(self, 'index.html', {})
+        else:
+            question = Question()
+            question.questionText = QT
+            question.timeSubmitted = datetime.datetime.now()
+            question.answer1 = A1
+            question.answer2 = A2
+            question.answer3 = A3
+            question.answer4 = A4
+            question.catagory = self.request.get('catagories')
+            question.put()
+            render_template(self, 'index.html', {})
 
+####################################################################################
+# Takes a created username and password from the website and stores it in the database
+####################################################################################
 class saveLogin(webapp2.RequestHandler):
     def post(self):
         mail = users.get_current_user().email()
         name = self.request.get('username')
         passw = self.request.get('password')
-        if (mail == '' or name == '' or passw == ''):
+        if (mail == ''):
             errorString = 'Please use a valid username and password!'
             render_template(self,'login.html',{
                 'error' : errorString
@@ -62,22 +85,78 @@ class saveLogin(webapp2.RequestHandler):
             use.put()
             render_template(self,'index.html',{})
 
+####################################################################################
+# Creates a json string of 5 random questions of the day
+####################################################################################
+class sendJsonQuestions(webapp2.RequestHandler):
+    def get(self):
+        questionList = Question.all()
+        questionList.order("-timeSubmitted")
+        randomList = random.sample(xrange(questionList.count()),5)
 
+        obj = {
+            "Questions":[
+                {"questionText":questionList[randomList[0]].questionText, "answer1":questionList[randomList[0]].answer1, "answer2":questionList[randomList[0]].answer2, "answer3":questionList[randomList[0]].answer3, "answer4":questionList[randomList[0]].answer4},
+                {"questionText":questionList[randomList[1]].questionText, "answer1":questionList[randomList[1]].answer1, "answer2":questionList[randomList[1]].answer2, "answer3":questionList[randomList[1]].answer3, "answer4":questionList[randomList[1]].answer4},
+                {"questionText":questionList[randomList[2]].questionText, "answer1":questionList[randomList[2]].answer1, "answer2":questionList[randomList[2]].answer2, "answer3":questionList[randomList[2]].answer3, "answer4":questionList[randomList[2]].answer4},
+                {"questionText":questionList[randomList[3]].questionText, "answer1":questionList[randomList[3]].answer1, "answer2":questionList[randomList[3]].answer2, "answer3":questionList[randomList[3]].answer3, "answer4":questionList[randomList[3]].answer4},
+                {"questionText":questionList[randomList[4]].questionText, "answer1":questionList[randomList[4]].answer1, "answer2":questionList[randomList[4]].answer2, "answer3":questionList[randomList[4]].answer3, "answer4":questionList[randomList[4]].answer4},
+            ]
+        }
+        self.response.out.write(json.dumps(obj, sort_keys=True))
+
+####################################################################################
+# Determines if a username and password exists in the database
+####################################################################################
+class receiveUsernameValid (webapp2.RequestHandler):
+    def get(self):
+        url = self.request.url
+        parsedUrl = url.split('?')
+        userList = Use.all()
+        userList.filter('username =', parsedUrl[1])
+        userList.filter('password =', parsedUrl[2])
+        currentUser = userList.run()
+        if currentUser:
+            self.response.out.write(True)
+        else:
+            self.response.out.write(False)
+
+
+####################################################################################
+# front-end back-end ping test class
+####################################################################################
+class ping(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+            'String':'ping'
+        }
+        self.response.out.write(json.dumps(obj))
+
+
+
+####################################################################################
+# Start of database objects
+####################################################################################
 class Question(db.Model):
-    questionText = db.StringProperty(multiline = True)
-    answer1 = db.StringProperty(multiline=True)
-    answer2 = db.StringProperty(multiline=True)
-    answer3 = db.StringProperty(multiline=True)
-    answer4 = db.StringProperty(multiline=True)
+    questionText = db.StringProperty(multiline = True, required=True)
+    answer1 = db.StringProperty(multiline=True, required=True)
+    answer2 = db.StringProperty(multiline=True, required=True)
+    answer3 = db.StringProperty(multiline=True, required=True)
+    answer4 = db.StringProperty(multiline=True, required=True)
+    catagory = db.StringProperty(multiline=True, required=True)
     timeSubmitted = db.DateTimeProperty()
 
 class Use(db.Model):
-    email = db.StringProperty(required=True)
-    username = db.StringProperty(required=True)
-    password = db.StringProperty(required=True)
+    email = db.StringProperty()
+    username = db.StringProperty()
+    password = db.StringProperty()
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/savePost', savePost),
-    ('/saveLogin', saveLogin)
+    ('/saveLogin', saveLogin),
+    ('/getQuestions', sendJsonQuestions),
+    ('/receiveUsernameValid', receiveUsernameValid),
+    ('/ping', ping)
 ], debug=True)

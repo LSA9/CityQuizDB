@@ -1,5 +1,6 @@
 <html>
 <body>
+<head><script src="//www.parsecdn.com/js/parse-1.6.7.min.js"></script></head>
 
 <style type="text/css">
 
@@ -61,14 +62,14 @@
         width: 98px;
     }
     #answer1label{
-        margin-left: 25px;
+        margin-left: 0px;
     }
 
     #answer2{
         width: 98px;
     }
     #answer2label{
-        margin-left: 30px;
+        margin-left: 20px;
     }
 
     #answer3{
@@ -82,7 +83,15 @@
         width: 98px;
     }
     #answer4label{
-        margin-left: 30px;
+        margin-left: 55px;
+    }
+
+    #catagories{
+        margin-left: 45px;
+    }
+
+    #catagorylabel{
+        margin-left: 70px;
     }
 
 </style>
@@ -91,18 +100,27 @@
     <form class="enterquestions" method="post" action="/savePost">
 
         <p class="questioninput">
+            <label for="catagories" id="catagorylabel">Catagory</label>
+            <select id="catagories" name="catagories">
+                <option value="history">History</option>
+                <option value="business">Business</option>
+                <option value="famous_figures">Famous Figures</option>
+                <option value="movies">Movies</option>
+                <option value="tv">TV</option>
+            </select>
+            <br><br>
             <label for="questionbox">Enter Question Here</label>
             <br><br>
             <input type="text" name="questionbox" id="questionbox"/>
             <br>
-            <label for="answer1" id="answer1label">Answer 1</label>
-            <label for="answer2" id="answer2label">Answer 2</label>
+            <label for="answer1" id="answer1label">Correct Answer</label>
+            <label for="answer2" id="answer2label">Fake 1</label>
             <br>
             <input type="text" name="answer1" id="answer1">
             <input type="text" name="answer2" id="answer2">
             <br>
-            <label for="answer1" id="answer3label">Answer 3</label>
-            <label for="answer2" id="answer4label">Answer 4</label>
+            <label for="answer1" id="answer3label">Fake 2</label>
+            <label for="answer2" id="answer4label">Fake 3</label>
             <br>
             <input type="text" name="answer3" id="answer3">
             <input type="text" name="answer4" id="answer4">
