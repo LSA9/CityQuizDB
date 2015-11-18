@@ -91,6 +91,7 @@ class saveLogin(webapp2.RequestHandler):
                 use.username = name
                 use.password = passw
                 use.highScore = 0
+                use.quizTaken = 0
                 use.put()
                 render_template(self,'index.html',{})
 
@@ -161,6 +162,33 @@ class receiveLeaderBoard(webapp2.RequestHandler):
         }
         self.response.out.write(json.dumps(obj, sort_keys=True))
 
+####################################################################################
+# Posts a new user to the database
+####################################################################################
+class sendCredentials(webapp2.RequestHandler):
+    def post(self):
+        url = self.request.url
+        parsedUrl = url.split('?')
+        newUser = Use()
+        newUser.username = parsedUrl[1]
+        newUser.password = parsedUrl[2]
+        newUser.highScore = 0
+        newUser.email = ''
+        newUser.quizTaken = 0
+        newUser.put()
+
+####################################################################################
+# Updates a users highscore
+####################################################################################
+class sendPoints(webapp2.RequestHandler):
+    def post(self):
+        url = self.request.url
+        parsedUrl = url.split('?')
+        userList = Use.all()
+        userList.filter('username =', parsedUrl[1])
+        currentUser = userList.fetch(1)
+        currentUser.highScore = parsedUrl[2]
+
 
 
 ####################################################################################
@@ -180,6 +208,7 @@ class Use(db.Model):
     username = db.StringProperty()
     password = db.StringProperty()
     highScore = db.IntegerProperty()
+    quizTaken = db.IntegerProperty()
 
 
 ####################################################################################
@@ -192,5 +221,7 @@ app = webapp2.WSGIApplication([
     ('/receiveDailyQuestions', sendJsonQuestions),
     ('/receiveUsernameValid', receiveUsernameValid),
     ('/receiveLeaderBoard', receiveLeaderBoard),
+    ('/sendPoints', sendPoints),
+    ('sendCredentials', sendCredentials),
     ('/ping', ping)
 ], debug=True)
