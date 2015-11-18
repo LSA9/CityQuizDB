@@ -11,9 +11,6 @@ handlers:
 - url: /.*
   script: code.app
 
-- url: /_ah/spi/.*
-  script: helloworld_api.APPLICATION
-
 libraries:
 - name: pycrypto
   version: latest
