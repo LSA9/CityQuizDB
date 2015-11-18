@@ -116,8 +116,10 @@ class receiveUsernameValid (webapp2.RequestHandler):
         userList.filter('username =', parsedUrl[1])
         userList.filter('password =', parsedUrl[2])
         currentUser = userList.run()
-        if currentUser:
+        if currentUser.count()<1:
             self.response.out.write(True)
+            self.response.out.write(parsedUrl[1])
+            self.response.out.write(parsedUrl[2])
         else:
             self.response.out.write(False)
 
@@ -139,19 +141,23 @@ class ping(webapp2.RequestHandler):
 # Start of database objects
 ####################################################################################
 class Question(db.Model):
-    questionText = db.StringProperty(multiline = True, required=True)
-    answer1 = db.StringProperty(multiline=True, required=True)
-    answer2 = db.StringProperty(multiline=True, required=True)
-    answer3 = db.StringProperty(multiline=True, required=True)
-    answer4 = db.StringProperty(multiline=True, required=True)
-    catagory = db.StringProperty(multiline=True, required=True)
+    questionText = db.StringProperty(multiline = True)
+    answer1 = db.StringProperty(multiline=True)
+    answer2 = db.StringProperty(multiline=True)
+    answer3 = db.StringProperty(multiline=True)
+    answer4 = db.StringProperty(multiline=True)
+    catagory = db.StringProperty(multiline=True)
     timeSubmitted = db.DateTimeProperty()
 
 class Use(db.Model):
-    email = db.StringProperty() 
+    email = db.StringProperty()
     username = db.StringProperty()
     password = db.StringProperty()
 
+
+####################################################################################
+# Request handler
+####################################################################################
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/savePost', savePost),
