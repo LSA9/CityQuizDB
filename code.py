@@ -148,7 +148,7 @@ class Question(db.Model):
     timeSubmitted = db.DateTimeProperty()
 
 class Use(db.Model):
-    email = db.StringProperty()
+    email = db.StringProperty() 
     username = db.StringProperty()
     password = db.StringProperty()
 
