@@ -124,12 +124,21 @@ class receiveUsernameValid (webapp2.RequestHandler):
         parsedUrl = url.split('?')
         userList = Use.all()
         userList.filter('username =', parsedUrl[1])
-        userList.filter('password =', parsedUrl[2])
-        userList.fetch(1)
-        if userList.count()==1:
-            self.response.out.write(True)
+        currentUser = userList.get()
+        if currentUser != None:
+            if userList.count()==1:
+                obj = {
+                    "Value" : "true"
+                }
+            else:
+                obj = {
+                    "Value" : "false"
+                }
         else:
-            self.response.out.write(False)
+            obj = {
+                "Value" : "false"
+            }
+        self.response.out.write(json.dumps(obj))
 
 
 ####################################################################################
@@ -139,7 +148,7 @@ class ping(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'
         obj = {
-            'String':'ping'
+            'Value':'ping'
         }
         self.response.out.write(json.dumps(obj))
 
@@ -166,7 +175,7 @@ class receiveLeaderBoard(webapp2.RequestHandler):
 # Posts a new user to the database
 ####################################################################################
 class sendCredentials(webapp2.RequestHandler):
-    def post(self):
+    def get(self):
         url = self.request.url
         parsedUrl = url.split('?')
         newUser = Use()
@@ -176,18 +185,80 @@ class sendCredentials(webapp2.RequestHandler):
         newUser.email = ''
         newUser.quizTaken = 0
         newUser.put()
+        obj = {
+            "Value" : "true"
+        }
+        self.response.out.write(json.dumps(obj))
 
 ####################################################################################
 # Updates a users highscore
 ####################################################################################
 class sendPoints(webapp2.RequestHandler):
-    def post(self):
+    def get(self):
         url = self.request.url
         parsedUrl = url.split('?')
         userList = Use.all()
         userList.filter('username =', parsedUrl[1])
-        currentUser = userList.fetch(1)
-        currentUser.highScore = parsedUrl[2]
+        currentUser = Use()
+        currentUser = userList.get()
+        currentUser.highScore = int(parsedUrl[2])
+        currentUser.put()
+        obj = {
+            "Value" : "true"
+        }
+        self.response.out.write(json.dumps(obj))
+
+####################################################################################
+# Sets user's quizTaken field to taken
+####################################################################################
+class sendQuizTaken(webapp2.RequestHandler):
+    def get(self):
+        url = self.request.url
+        parsedUrl = url.split('?')
+        userList = Use.all()
+        userList.filter('username =', parsedUrl[1])
+        currentUser = Use()
+        currentUser = userList.get()
+        currentUser.quizTaken = 1
+        currentUser.put()
+        obj = {
+            "Value" : "true"
+        }
+        self.response.out.write(json.dumps(obj))
+
+####################################################################################
+# check user login for if password is correct
+####################################################################################
+class receiveSignInValid(webapp2.RequestHandler):
+    def get(self):
+        url = self.request.url
+        parsedUrl = url.split('?')
+        userList = Use.all()
+        userList.filter('username =', parsedUrl[1])
+        currentUser = userList.get()
+        if currentUser!=None:
+            if (currentUser.password == parsedUrl[2]):
+                obj = {
+                    "Value" : "true",
+                    "Points" : currentUser.highScore,
+                    "QuizTaken" : currentUser.quizTaken
+                }
+            else:
+                obj = {
+                    "Value" : "false"
+                }
+        else:
+            obj = {
+                "Value" : "false"
+            }
+        self.response.out.write(json.dumps(obj))
+
+class setQuizTakenZero(webapp2.RequestHandler):
+    def get(self):
+        userList = Use.all()
+        for user in userList:
+            user.highScore = 0
+            user.put()
 
 
 
@@ -222,6 +293,9 @@ app = webapp2.WSGIApplication([
     ('/receiveUsernameValid', receiveUsernameValid),
     ('/receiveLeaderBoard', receiveLeaderBoard),
     ('/sendPoints', sendPoints),
-    ('sendCredentials', sendCredentials),
-    ('/ping', ping)
+    ('/sendCredentials', sendCredentials),
+    ('/sendQuizTaken', sendQuizTaken),
+    ('/receiveSignInValid', receiveSignInValid),
+    ('/ping', ping),
+    ('/setQuizTakenZero', setQuizTakenZero)
 ], debug=True)
