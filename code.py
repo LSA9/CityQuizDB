@@ -24,19 +24,26 @@ def render_template(handler, templatename, templatevalues):
 ####################################################################################
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        user = users.get_current_user()
-        if user:
-            userList = Use.all()
-            userInQuestion = userList.filter("email =", user.email())
-            result = userList.get()
-            if result:
-                render_template(self,'index.html',{})
-            else:
-                render_template(self,'login.html',{})
+        render_template(self,'login.html',{})
+
+
+class createAccountPage(webapp2.RequestHandler):
+    def get(self):
+        render_template(self, 'createAccount.html',{})
+
+class checkLoginValid(webapp2.RequestHandler):
+    def post(self):
+        desiredUsername = self.request.get('username')
+        desiredPassword = self.request.get('password')
+        userList = Use.all()
+        userList.filter('username =', desiredUsername)
+        userList.filter('password =', desiredPassword)
+        possibleUser = userList.get()
+        if possibleUser != None:
+            render_template(self, 'index.html', {})
         else:
-            url = users.create_login_url()
-            render_template(self, 'getGmailLogin.html',{
-                'url': url
+            render_template(self, 'login.html', {
+                'error' : 'Invalid account!'
             })
 
 ####################################################################################
@@ -68,32 +75,24 @@ class savePost(webapp2.RequestHandler):
 ####################################################################################
 class saveLogin(webapp2.RequestHandler):
     def post(self):
-        mail = users.get_current_user().email()
-        name = self.request.get('username')
         userList = Use.all()
-        userList.filter("username =", name)
         passw = self.request.get('password')
+        name = self.request.get('username')
+        userList.filter("username =", name)
+
         if userList.count()==1:
             invalidUsername = "Username already in use!"
-            render_template(self,'login.html',{
+            render_template(self,'createAccount.html',{
                 'error' : invalidUsername
             })
         else:
-            if (mail == ''):
-                errorString = 'Please use a valid username and password!'
-                render_template(self,'login.html',{
-                    'error' : errorString
-                })
-            else:
-                use = Use()
-                logging.debug(users.get_current_user().email())
-                use.email = mail
-                use.username = name
-                use.password = passw
-                use.highScore = 0
-                use.quizTaken = 0
-                use.put()
-                render_template(self,'index.html',{})
+            use = Use()
+            use.username = name
+            use.password = passw
+            use.highScore = 0
+            use.quizTaken = 0
+            use.put()
+            render_template(self,'login.html',{})
 
 ####################################################################################
 # Creates a json string of 5 random questions of the day
@@ -126,17 +125,12 @@ class receiveUsernameValid (webapp2.RequestHandler):
         userList.filter('username =', parsedUrl[1])
         currentUser = userList.get()
         if currentUser != None:
-            if userList.count()==1:
-                obj = {
-                    "Value" : "true"
-                }
-            else:
-                obj = {
-                    "Value" : "false"
-                }
-        else:
             obj = {
                 "Value" : "false"
+            }
+        else:
+            obj = {
+                "Value" : "true"
             }
         self.response.out.write(json.dumps(obj))
 
@@ -165,8 +159,8 @@ class receiveLeaderBoard(webapp2.RequestHandler):
                 {"Username":userList[0].username, "highScore":userList[0].highScore},
                 {"Username":userList[1].username, "highScore":userList[1].highScore},
                 {"Username":userList[2].username, "highScore":userList[2].highScore},
-                {"Username":userList[2].username, "highScore":userList[2].highScore},
-                {"Username":userList[2].username, "highScore":userList[2].highScore},
+                {"Username":userList[3].username, "highScore":userList[3].highScore},
+                {"Username":userList[4].username, "highScore":userList[4].highScore},
             ]
         }
         self.response.out.write(json.dumps(obj, sort_keys=True))
@@ -182,7 +176,6 @@ class sendCredentials(webapp2.RequestHandler):
         newUser.username = parsedUrl[1]
         newUser.password = parsedUrl[2]
         newUser.highScore = 0
-        newUser.email = ''
         newUser.quizTaken = 0
         newUser.put()
         obj = {
@@ -275,7 +268,6 @@ class Question(db.Model):
     timeSubmitted = db.DateTimeProperty()
 
 class Use(db.Model):
-    email = db.StringProperty()
     username = db.StringProperty()
     password = db.StringProperty()
     highScore = db.IntegerProperty()
@@ -289,6 +281,8 @@ app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/savePost', savePost),
     ('/saveLogin', saveLogin),
+    ('/createAccountPage', createAccountPage),
+    ('/checkLoginValid', checkLoginValid),
     ('/receiveDailyQuestions', sendJsonQuestions),
     ('/receiveUsernameValid', receiveUsernameValid),
     ('/receiveLeaderBoard', receiveLeaderBoard),
