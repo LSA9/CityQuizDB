@@ -51,9 +51,6 @@
     #loginsubmit{
         background-color: #617798;
     }
-    #createAccount{
-        background-color: #617798;
-    }
 
     #username{
         width: 98px;
@@ -73,15 +70,14 @@
         color: WHITE;
     }
     #errorlabel{
-        color: WHITE
+        color: WHITE;
     }
 
 
 </style>
 <body>
-<div>
-    <form method="post" action="/checkLoginValid">
-
+    <form method="post" action="/saveLogin">
+        <div>
             <label for="username" id="usernamelable">Username</label>
             <br>
             <input type="text" id="username" name="username" >
@@ -91,19 +87,12 @@
             <input type="password" id="password" name="password">
             <br>
             <br>
-            <input type="submit" value="Login" id="loginsubmit">
+            <input type="submit" value="Create" id="loginsubmit">
             <br>
             <label id="errorlabel">{{error}}</label>
 
-
-    </form>
-    <br>
-    <form method="get" action="/createAccountPage">
-        <input type="submit" value="Create Account" id="createAccount">
-    </form>
-</div>
-<br>
-
+    </div>
+</form>
 
 </body>
 </html>
