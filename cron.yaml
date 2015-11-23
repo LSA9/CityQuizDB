@@ -1,0 +1,8 @@
+cron:
+- description: Set use.quizTaken to zero
+  url: /setQuizTakenZero
+  schedule: every day 00:00
+
+- description: Set questions of the day
+  url: /setQuestionsOfTheDay
+  schedule: every day 00:00

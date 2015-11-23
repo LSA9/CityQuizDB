@@ -14,6 +14,7 @@ import json
 import random
 
 
+
 def render_template(handler, templatename, templatevalues):
     path = os.path.join(os.path.dirname(__file__),'templates/'+templatename)
     html = template.render(path, templatevalues)
@@ -26,11 +27,16 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         render_template(self,'login.html',{})
 
-
+####################################################################################
+# Redirects the user to the create an account page
+####################################################################################
 class createAccountPage(webapp2.RequestHandler):
     def get(self):
         render_template(self, 'createAccount.html',{})
 
+####################################################################################
+# Checks if the username provided from the login page is valid
+####################################################################################
 class checkLoginValid(webapp2.RequestHandler):
     def post(self):
         desiredUsername = self.request.get('username')
@@ -85,6 +91,11 @@ class saveLogin(webapp2.RequestHandler):
             render_template(self,'createAccount.html',{
                 'error' : invalidUsername
             })
+        elif (passw=='' or name==''):
+            invalidEntry = 'You must have a username and password!'
+            render_template(self,'createAccount.html',{
+                'error' : invalidEntry
+            })
         else:
             use = Use()
             use.username = name
@@ -100,7 +111,6 @@ class saveLogin(webapp2.RequestHandler):
 class sendJsonQuestions(webapp2.RequestHandler):
     def get(self):
         questionList = Question.all()
-        questionList.order("-timeSubmitted")
         randomList = random.sample(xrange(questionList.count()),5)
 
         obj = {
@@ -246,12 +256,36 @@ class receiveSignInValid(webapp2.RequestHandler):
             }
         self.response.out.write(json.dumps(obj))
 
+####################################################################################
+# Cron job to set all use.quizTaken to zero at the begining of the day
+####################################################################################
 class setQuizTakenZero(webapp2.RequestHandler):
     def get(self):
         userList = Use.all()
         for user in userList:
             user.highScore = 0
             user.put()
+
+####################################################################################
+# Cron job to set all questions at the begining of the day
+####################################################################################
+class setQuestionsOfTheDay(webapp2.RequestHandler):
+    def get(self):
+        questionList = Question.all()
+        questionList.order("-timeSubmitted")
+        randomList = random.sample(xrange(questionList.count()),5)
+
+        questions = QuestionsOfTheDay.all()
+        questionObject = questions.get()
+
+        questionObject.question1 = randomList[0]
+        questionObject.question1 = randomList[1]
+        questionObject.question2 = randomList[2]
+        questionObject.question3 = randomList[3]
+        questionObject.question4 = randomList[4]
+
+
+
 
 
 
@@ -273,6 +307,13 @@ class Use(db.Model):
     highScore = db.IntegerProperty()
     quizTaken = db.IntegerProperty()
 
+class QuestionsOfTheDay(db.Model):
+    question0 = Question
+    question1 = Question
+    question2 = Question
+    question3 = Question
+    question4 = Question
+
 
 ####################################################################################
 # Request handler
@@ -290,6 +331,8 @@ app = webapp2.WSGIApplication([
     ('/sendCredentials', sendCredentials),
     ('/sendQuizTaken', sendQuizTaken),
     ('/receiveSignInValid', receiveSignInValid),
+    ('setQuestionsOfTheDay', setQuestionsOfTheDay),
+    ('setQuizTakenZero', setQuizTakenZero),
     ('/ping', ping),
     ('/setQuizTakenZero', setQuizTakenZero)
 ], debug=True)
